@@ -21,7 +21,7 @@ class AuthPresenter @Inject constructor(private val interactor: AuthInteractor) 
             .flatMap { interactor.passwordTyped(it.toString()) }
             .observeOn(AndroidSchedulers.mainThread())
         val buttonIntent = intent(AuthView::clickIntent)
-            .switchMap { interactor.login() }
+            .concatMap { interactor.login() }
             .observeOn(AndroidSchedulers.mainThread())
         val errorShownIntent = intent(AuthView::errorShownIntent)
             .flatMap { interactor.errorShow() }

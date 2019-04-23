@@ -65,7 +65,9 @@ class AuthInteractor @Inject constructor(private val repository: AuthRepository)
     }
 
     fun login(): Observable<out PartialAuthState> {
-        return state.flatMap { repository.login(it.email, it.password).toObservable() }
+        return state.take(1).switchMap {
+            repository.login(it.email, it.password).toObservable()
+        }
             .map<PartialAuthState> { PartialAuthState.LoggedInState }
             .startWith(PartialAuthState.TryLoggedInState)
             .onErrorReturn { PartialAuthState.ErrorState(it) }
