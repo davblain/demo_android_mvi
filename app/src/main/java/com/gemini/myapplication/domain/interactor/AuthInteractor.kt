@@ -17,17 +17,9 @@ class AuthInteractor @Inject constructor(private val repository: AuthRepository)
 
     private val viewStateReducer = BiFunction { oldState: AuthViewState, partialState: PartialAuthState ->
         when (partialState) {
-            is PartialAuthState.EmailCorrectState -> oldState.copy(isCorrectEmail = true, email = partialState.email)
-            is PartialAuthState.EmailIncorrectState -> oldState.copy(
-                isCorrectPassword = false,
-                email = partialState.email
-            )
+            is PartialAuthState.EmailCorrectState -> oldState.copy(isCorrectEmail = partialState.valid, email = partialState.email)
             is PartialAuthState.PasswordCorrectState -> oldState.copy(
-                isCorrectPassword = true,
-                password = partialState.password
-            )
-            is PartialAuthState.PasswordIncorrectState -> oldState.copy(
-                isCorrectPassword = false,
+                isCorrectPassword = partialState.valid,
                 password = partialState.password
             )
             is PartialAuthState.LoadingState -> oldState.copy(isLoading = partialState.isLoading)
@@ -46,21 +38,15 @@ class AuthInteractor @Inject constructor(private val repository: AuthRepository)
 
     fun passwordTyped(password: String): Observable<out PartialAuthState> {
         return Observable.just(password).map {
-            if (PasswordValidator.isValid(it)) {
-                return@map PartialAuthState.PasswordCorrectState(it)
-            } else {
-                return@map PartialAuthState.PasswordIncorrectState(it)
-            }
+            val valid =  PasswordValidator.isValid(it)
+            PartialAuthState.PasswordCorrectState(valid,it)
         }.toState()
     }
 
     fun emailTyped(email: String): Observable<out PartialAuthState> {
         return Observable.just(email).map {
-            if (EmailValidator.isValid(it)) {
-                return@map PartialAuthState.EmailCorrectState(it)
-            } else {
-                return@map PartialAuthState.EmailIncorrectState(it)
-            }
+            val valid =  EmailValidator.isValid(it)
+            PartialAuthState.EmailCorrectState(valid,it)
         }.toState()
     }
 
